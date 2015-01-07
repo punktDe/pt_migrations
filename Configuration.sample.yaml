@@ -1,0 +1,29 @@
+# Put this one into
+configuration:
+  nodes:
+    Production:
+      Live:
+        host: localhost
+        user: live
+        password: secret
+        db: myProject
+    Development:
+      Vagrant:
+        host: localhost
+        user: developer
+        password: developer
+        db: myProject
+    Testing:
+      Jenkins:
+        host: localhost
+        user: jenkins
+        password: jenkins
+        db: myProject
+  doctrine:
+    name: Doctrine Migrations for TYPO3
+    migrations_namespace: DoctrineMigrations
+    table_name: pt_migrations
+    migrations_directory:
+      - path/to/your/migrations/folder
+      # Relative to the document root, for example:
+      # - typo3conf/ext/pt_migrations/Resources/Private/Migrations
