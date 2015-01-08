@@ -11,7 +11,11 @@ $classLoader = new \Doctrine\Common\ClassLoader('Symfony', $doctrineMigrationsPh
 $classLoader->register();
 
 use Symfony\Component\Console\Helper\HelperSet;
-use Symfony\Component\Console\Helper\QuestionHelper;
+
+// TODO: DialogHelper is still used by Doctrine Migration (Migrate, Status and Version)
+// TODO: Depends on https://github.com/doctrine/migrations/pull/198
+use Symfony\Component\Console\Helper\DialogHelper;
+
 use Symfony\Component\Console\Application;
 use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
 use Doctrine\DBAL\Migrations\Configuration\YamlConfiguration;
@@ -64,7 +68,7 @@ $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
 // Create the cli application
 $helperSet = new HelperSet(array(
 	'db' => new ConnectionHelper($conn),
-	'dialog' => new QuestionHelper(),
+	'dialog' => new DialogHelper(),
 ));
 
 $cli = new Application('Doctrine Command Line Interface', \Doctrine\DBAL\Migrations\MigrationsVersion::VERSION);
