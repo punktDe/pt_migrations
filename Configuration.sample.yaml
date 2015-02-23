@@ -24,6 +24,7 @@ configuration:
     migrations_namespace: DoctrineMigrations
     table_name: pt_migrations
     migrations_directory:
-      - path/to/your/migrations/folder
+      - typo3conf/ext/pt_campo/Migrations
+      # - path/to/your/migrations/folder
       # Relative to the document root, for example:
       # - typo3conf/ext/pt_migrations/Resources/Private/Migrations
