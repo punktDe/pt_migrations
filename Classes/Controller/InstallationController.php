@@ -50,7 +50,7 @@ class Tx_PtMigrations_Controller_InstallationController extends Tx_PtExtbase_Con
 		foreach ($migrations as $migration){
 			$migrationState = array();
 			$migrationState['version'] = $migration;
-			$migrationState['timestamp'] = substr($migration, 0, 7) . " " . substr($migration, 7, 10);
+			$migrationState['timestamp'] = substr($migration, 0, 7) . " " . substr($migration, 7, 4) . "-" . substr($migration, 11, 2) . "-" . substr($migration, 13, 2) . " " . substr($migration, 15, 2);
 			$executed = FALSE;
 			foreach($executedMigrations as $executedMigration) {
 				if (trim(substr($migration, 7, 10)) == trim($executedMigration['version'])) {
