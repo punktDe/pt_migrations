@@ -21,9 +21,6 @@
                                         <f:else>
                                             <f:image src="typo3conf/ext/pt_migrations/Resources/Public/Icons/red-cross-icon-1.png" alt="redcross" />
                                             <td>
-                                                <f:form action="index" controller="Installation">
-                                                    <f:form.button>Run Migration</f:form.button>
-                                                </f:form>
                                             </td>
                                         </f:else>
                                     </f:if>
@@ -31,12 +28,14 @@
                             </tr>
                         </f:for>
                         <tr>
-                            <td></td>
+                            <td>
+                                <f:link.action action="runMigration" controller="Installation">
+                                    <strong style = color:#0000ff>Run all the migrations</strong>
+                                </f:link.action>
+                            </td>
                             <td></td>
                             <td>
-                                <f:form action="index" controller="Installation">
-                                    <f:form.button type="submit">Run all the Migrations</f:form.button>
-                                </f:form>
+
                             </td>
                         </tr>
                     </tbody>

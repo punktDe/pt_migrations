@@ -45,12 +45,24 @@ class Tx_PtMigrations_Controller_InstallationController extends Tx_PtExtbase_Con
 		$this->view->assign('migrations', $this->compareMigrations($migrations, $executedMigrations));
     }
 
+	public function runMigrationAction() {
+		$runMigration = 'TYPO3_CONTEXT=Development/Feature ./migrate migrations:migrate';
+		$confirm = 'y';
+		chdir('/var/apache/onebruker-feature/htdocs/typo3conf/ext/pt_migrations/bin/');
+		#$directory = getcwd();
+		shell_exec('TYPO3_CONTEXT=Development/Feature ./migrate migrations:migrate');
+		#shell_exec($confirm);
+		#shell_exec($confirm);
+		return False;
+	}
+
 	protected function compareMigrations($migrations,$executedMigrations){
 		$comparedMigrations = array();
 		foreach ($migrations as $migration){
 			$migrationState = array();
 			$migrationState['version'] = $migration;
-			$migrationState['timestamp'] = substr($migration, 0, 7) . " " . substr($migration, 7, 4) . "-" . substr($migration, 11, 2) . "-" . substr($migration, 13, 2) . " " . substr($migration, 15, 2);
+			$timestamp = gmdate("Y-m-d--H:i:s",substr($migration, 7, 10));
+			$migrationState['timestamp'] = substr($migration, 0, 7) . " " . $timestamp;
 			$executed = FALSE;
 			foreach($executedMigrations as $executedMigration) {
 				if (trim(substr($migration, 7, 10)) == trim($executedMigration['version'])) {
