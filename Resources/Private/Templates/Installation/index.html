@@ -11,7 +11,7 @@
                         <f:for each="{migrations}" as="migration">
                             <tr>
                                 <td>
-                                    {migration.timestamp}
+                                   <f:format.date format="d.m.Y - H:i:s">{migration.timestamp}</f:format.date>
                                 </td>
                                 <td>
                                     <f:if condition="{migration.executed} > 0">
@@ -21,6 +21,7 @@
                                         <f:else>
                                             <f:image src="typo3conf/ext/pt_migrations/Resources/Public/Icons/red-cross-icon-1.png" alt="redcross" />
                                             <td>
+                                            </td>
                                             </td>
                                         </f:else>
                                     </f:if>
@@ -34,9 +35,7 @@
                                 </f:link.action>
                             </td>
                             <td></td>
-                            <td>
-
-                            </td>
+                            <td></td>
                         </tr>
                     </tbody>
                 </div>

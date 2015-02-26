@@ -31,48 +31,83 @@
  */
 class Tx_PtMigrations_Controller_InstallationController extends Tx_PtExtbase_Controller_AbstractActionController {
 
-    public function indexAction() {
-		$currentDirectory = __DIR__;
-		$migrationsDirectory = $currentDirectory . '/../../../pt_campo/Migrations/';
-		$migrations = array_diff(scandir($migrationsDirectory), array('..', '.'));
-		$dbObject = $GLOBALS['TYPO3_DB']; /* @var \TYPO3\CMS\Core\Database\DatabaseConnection $dbObject */
-		$executedMigrations = $dbObject->exec_SELECTgetRows('version', 'pt_migrations', '1=1');
+	public function indexAction() {
+		$migrations = $this->getAllMigrations();
+		$executedMigrations = $this->getExecutedMigrations();
+		$comparedMigrations = $this->compareMigrations($migrations, $executedMigrations);
+
 		$this->view->assign('executedMigrations', $executedMigrations);
-		$numberAvailableMigrations = count($migrations);
-		$numberExecutedMigrations = count($executedMigrations);
-		$this->view->assign('numberAvailableMigrations', $numberAvailableMigrations);
-		$this->view->assign('numberExecutedMigrations', $numberExecutedMigrations);
-		$this->view->assign('migrations', $this->compareMigrations($migrations, $executedMigrations));
+		$this->view->assign('numberAvailableMigrations', count($migrations));
+		$this->view->assign('numberExecutedMigrations', count($executedMigrations));
+		$this->view->assign('migrations', $comparedMigrations);
     }
 
 	public function runMigrationAction() {
-		$runMigration = 'TYPO3_CONTEXT=Development/Feature ./migrate migrations:migrate';
-		$confirm = 'y';
-		chdir('/var/apache/onebruker-feature/htdocs/typo3conf/ext/pt_migrations/bin/');
-		#$directory = getcwd();
-		shell_exec('TYPO3_CONTEXT=Development/Feature ./migrate migrations:migrate');
-		#shell_exec($confirm);
-		#shell_exec($confirm);
-		return False;
+		$this->executedMissedMigrations();
+		$this->redirect('index');
 	}
 
 	protected function compareMigrations($migrations,$executedMigrations){
 		$comparedMigrations = array();
 		foreach ($migrations as $migration){
-			$migrationState = array();
-			$migrationState['version'] = $migration;
-			$timestamp = gmdate("Y-m-d--H:i:s",substr($migration, 7, 10));
-			$migrationState['timestamp'] = substr($migration, 0, 7) . " " . $timestamp;
-			$executed = FALSE;
+			$migrationState = array(
+				'version' => $migration,
+				'timestamp' => substr($migration, 7, 10),
+				'executed' => '0'
+			);
 			foreach($executedMigrations as $executedMigration) {
 				if (trim(substr($migration, 7, 10)) == trim($executedMigration['version'])) {
-					$executed = TRUE;
+					$migrationState['executed'] = '1';
 				}
 			}
-			$migrationState['executed'] = $executed ? '1' : '0';
 			$comparedMigrations[] = $migrationState;
 		}
 		return $comparedMigrations;
+	}
+
+	/**
+	 * @return array
+	 */
+	protected function getAllMigrations() {
+		$migrationsDirectory = __DIR__ . '/../../../pt_campo/Migrations/';
+		return array_diff(scandir($migrationsDirectory), array('..', '.'));
+	}
+
+	/**
+	 * @return array|NULL
+	 */
+	protected function getExecutedMigrations() {
+		$dbObject = $GLOBALS['TYPO3_DB']; /* @var \TYPO3\CMS\Core\Database\DatabaseConnection $dbObject */
+		return $dbObject->exec_SELECTgetRows('version', 'pt_migrations', '1=1');
+	}
+
+	protected function executedMissedMigrations() {
+		$currentEnvironment = \TYPO3\CMS\Core\Utility\GeneralUtility::getApplicationContext();
+		$runMigrationCommand = "TYPO3_CONTEXT=$currentEnvironment ./migrate -n migrations:migrate 2>&1";
+		$output = array();
+		chdir(__DIR__ . '/../../bin/');
+		$this->runShellCommand($runMigrationCommand, $output, $exitCode);
+		if ($exitCode == 0) {
+			$messages = implode('<br>', $output);
+			$this->addFlashMessage("Messages from migration command: $messages", 'Migrations successfully run');
+		} else {
+			$this->addFlashMessage("Error ($exitCode): <br>" . implode('<br>', $output), 'An Error occurred!',\TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
+		}
+	}
+
+
+
+	protected function runShellCommand($command, array &$output, &$exitCode) {
+		exec($command, $output, $exitCode);
+		/*
+		$proc = popen($command, 'r');
+		while (!feof($proc)) {
+			$output .= fread($proc, 4096);
+		}
+		$output = explode("\n", $output);
+		pclose($proc);
+		$exitCode = trim(exec('echo $?'));
+		*/
 	}
 
 }
