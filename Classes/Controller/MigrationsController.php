@@ -24,7 +24,6 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-namespace PunktDe\PtMigrations\MigrationsController;
 
 use PunktDe\PtMigrations\Domain\Model\MigrationState;
 
