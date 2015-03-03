@@ -24,6 +24,10 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
+
+use PunktDe\PtMigrations\Domain\Model\MigrationState;
+
+
 /**
  * Class implements controller for migrations Installation module
  *
@@ -33,52 +37,26 @@ class Tx_PtMigrations_Controller_InstallationController extends Tx_PtExtbase_Con
 
 	public function indexAction() {
 		$migrations = $this->getAllMigrations();
-		$executedMigrations = $this->getExecutedMigrations();
-		$comparedMigrations = $this->compareMigrations($migrations, $executedMigrations);
 
-		$this->view->assign('executedMigrations', $executedMigrations);
 		$this->view->assign('numberAvailableMigrations', count($migrations));
-		$this->view->assign('numberExecutedMigrations', count($executedMigrations));
-		$this->view->assign('migrations', $comparedMigrations);
-    }
+		$this->view->assign('migrations', $migrations);
+	}
 
 	public function runMigrationAction() {
 		$this->executedMissedMigrations();
 		$this->redirect('index');
 	}
 
-	protected function compareMigrations($migrations,$executedMigrations){
-		$comparedMigrations = array();
-		foreach ($migrations as $migration){
-			$migrationState = array(
-				'version' => $migration,
-				'timestamp' => substr($migration, 7, 10),
-				'executed' => '0'
-			);
-			foreach($executedMigrations as $executedMigration) {
-				if (trim(substr($migration, 7, 10)) == trim($executedMigration['version'])) {
-					$migrationState['executed'] = '1';
-				}
-			}
-			$comparedMigrations[] = $migrationState;
-		}
-		return $comparedMigrations;
-	}
-
 	/**
-	 * @return array
+	 * @return array<MigrationState>
 	 */
 	protected function getAllMigrations() {
 		$migrationsDirectory = __DIR__ . '/../../../pt_campo/Migrations/';
-		return array_diff(scandir($migrationsDirectory), array('..', '.'));
-	}
-
-	/**
-	 * @return array|NULL
-	 */
-	protected function getExecutedMigrations() {
-		$dbObject = $GLOBALS['TYPO3_DB']; /* @var \TYPO3\CMS\Core\Database\DatabaseConnection $dbObject */
-		return $dbObject->exec_SELECTgetRows('version', 'pt_migrations', '1=1');
+		$migrations = array();
+		foreach(array_diff(scandir($migrationsDirectory), array('..', '.')) as $timestamp) {
+			$migrations[] = new MigrationState(substr($timestamp, 7, 10));
+		}
+		return $migrations;
 	}
 
 	protected function executedMissedMigrations() {
@@ -99,15 +77,6 @@ class Tx_PtMigrations_Controller_InstallationController extends Tx_PtExtbase_Con
 
 	protected function runShellCommand($command, array &$output, &$exitCode) {
 		exec($command, $output, $exitCode);
-		/*
-		$proc = popen($command, 'r');
-		while (!feof($proc)) {
-			$output .= fread($proc, 4096);
-		}
-		$output = explode("\n", $output);
-		pclose($proc);
-		$exitCode = trim(exec('echo $?'));
-		*/
 	}
 
 }

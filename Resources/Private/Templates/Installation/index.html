@@ -14,7 +14,7 @@
                                    <f:format.date format="d.m.Y - H:i:s">{migration.timestamp}</f:format.date>
                                 </td>
                                 <td>
-                                    <f:if condition="{migration.executed} > 0">
+                                    <f:if condition="{migration.migrated} > 0">
                                         <f:then>
                                             <f:image src="typo3conf/ext/pt_migrations/Resources/Public/Icons/GreenTick.jpg" alt="greentick" />
                                         </f:then>
