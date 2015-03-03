@@ -24,6 +24,7 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
+namespace PunktDe\PtMigrations\MigrationsController;
 
 use PunktDe\PtMigrations\Domain\Model\MigrationState;
 
@@ -33,7 +34,7 @@ use PunktDe\PtMigrations\Domain\Model\MigrationState;
  *
  * @package Controller
  */
-class Tx_PtMigrations_Controller_InstallationController extends Tx_PtExtbase_Controller_AbstractActionController {
+class Tx_PtMigrations_Controller_MigrationsController extends Tx_PtExtbase_Controller_AbstractActionController {
 
 	public function indexAction() {
 		$migrations = $this->getAllMigrations();
@@ -42,6 +43,7 @@ class Tx_PtMigrations_Controller_InstallationController extends Tx_PtExtbase_Con
 		$this->view->assign('migrations', $migrations);
 	}
 
+	//Run the missed migrations and refresh the view in the backend
 	public function runMigrationAction() {
 		$this->executedMissedMigrations();
 		$this->redirect('index');
@@ -50,6 +52,7 @@ class Tx_PtMigrations_Controller_InstallationController extends Tx_PtExtbase_Con
 	/**
 	 * @return array<MigrationState>
 	 */
+	//Load the migrations from the migrations folder in pt_campo
 	protected function getAllMigrations() {
 		$migrationsDirectory = __DIR__ . '/../../../pt_campo/Migrations/';
 		$migrations = array();
@@ -60,11 +63,15 @@ class Tx_PtMigrations_Controller_InstallationController extends Tx_PtExtbase_Con
 	}
 
 	protected function executedMissedMigrations() {
+		//Load the current environment
 		$currentEnvironment = \TYPO3\CMS\Core\Utility\GeneralUtility::getApplicationContext();
 		$runMigrationCommand = "TYPO3_CONTEXT=$currentEnvironment ./migrate -n migrations:migrate 2>&1";
 		$output = array();
+		//Change the actual directory to the one where the command should be run
 		chdir(__DIR__ . '/../../bin/');
+		//Run the command in the console
 		$this->runShellCommand($runMigrationCommand, $output, $exitCode);
+		//This shows flash message with the console output when an error or a warning happens
 		if ($exitCode == 0) {
 			$messages = implode('<br>', $output);
 			$this->addFlashMessage("Messages from migration command: $messages", 'Migrations successfully run');

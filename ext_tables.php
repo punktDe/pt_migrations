@@ -40,7 +40,7 @@ if (TYPO3_MODE === 'BE') {
 		'pt_migrations', // Submodule key
 		'0', // Position
 		array( // An array holding the controller-action-combinations that are accessible
-			'Installation' => 'index,runMigration'
+			'Migrations' => 'index,runMigration'
 		),
 		array(
 			'access' => 'user,group',

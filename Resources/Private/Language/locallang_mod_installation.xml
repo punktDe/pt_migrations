@@ -6,8 +6,9 @@
 	</meta>
 	<data type="array">
 		<languageKey index="default" type="array">
-			<label index="mlang_tabs_tab">Pt Migrations</label>
-			<label index="mlang_labels_tabdescr">Pt Migrations Tool.</label>
+			<!--This is the label that is going to be shown as the name of the backend module -->
+			<label index="mlang_tabs_tab">Migrations</label>
+			<label index="mlang_labels_tabdescr">Migrations Tool.</label>
 		</languageKey>
 	</data>
 	<orig_hash type="array">
