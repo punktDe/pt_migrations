@@ -1,4 +1,7 @@
 <?php
+
+use PunktDe\PtMigrations\Domain\Model\MigrationState;
+
 /***************************************************************
 *  Copyright notice
 *
@@ -25,9 +28,6 @@
 ***************************************************************/
 
 
-use PunktDe\PtMigrations\Domain\Model\MigrationState;
-
-
 /**
  * Class implements controller for migrations module
  *
@@ -42,11 +42,15 @@ class Tx_PtMigrations_Controller_MigrationsController extends Tx_PtExtbase_Contr
 		$this->view->assign('migrations', $migrations);
 	}
 
+
+
 	//Run the missed migrations and refresh the view in the backend
 	public function runMigrationAction() {
 		$this->executedMissedMigrations();
 		$this->redirect('index');
 	}
+
+
 
 	/**
 	 * @return array<MigrationState>
@@ -60,6 +64,8 @@ class Tx_PtMigrations_Controller_MigrationsController extends Tx_PtExtbase_Contr
 		}
 		return $migrations;
 	}
+
+
 
 	protected function executedMissedMigrations() {
 		//Load the current environment
