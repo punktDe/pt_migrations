@@ -29,7 +29,7 @@ use PunktDe\PtMigrations\Domain\Model\MigrationState;
 
 
 /**
- * Class implements controller for migrations Installation module
+ * Class implements controller for migrations module
  *
  * @package Controller
  */
