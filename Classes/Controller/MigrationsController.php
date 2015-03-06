@@ -44,7 +44,9 @@ class Tx_PtMigrations_Controller_MigrationsController extends Tx_PtExtbase_Contr
 
 
 
-	//Run the missed migrations and refresh the view in the backend
+	/**
+	 * Run the pending migrations and refresh the view in the backend
+	 */
 	public function runMigrationAction() {
 		$this->executedMissedMigrations();
 		$this->redirect('index');
@@ -53,9 +55,10 @@ class Tx_PtMigrations_Controller_MigrationsController extends Tx_PtExtbase_Contr
 
 
 	/**
+	 * Load the migrations from the migrations folder in pt_campo
+	 *
 	 * @return array<MigrationState>
 	 */
-	//Load the migrations from the migrations folder in pt_campo
 	protected function getAllMigrations() {
 		$migrationsDirectory = __DIR__ . '/../../../pt_campo/Migrations/';
 		$migrations = array();
