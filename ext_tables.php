@@ -32,13 +32,12 @@ if (!defined ('TYPO3_MODE')) die ('Access denied.');
  */
 
 if (TYPO3_MODE === 'BE') {
-
 	// Register the Pt Migrations tool
 	\TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-		$_EXTKEY,
+		'PunktDe.' . $_EXTKEY,
 		'tools', // Make module a submodule of 'tools'
-		'pt_migrations', // Submodule key
-		'0', // Position
+		'migrations', // Submodule key
+		'', // Position
 		array( // An array holding the controller-action-combinations that are accessible
 			'Migrations' => 'index,runMigration'
 		),

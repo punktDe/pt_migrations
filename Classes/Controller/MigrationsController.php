@@ -1,11 +1,11 @@
 <?php
 
-use PunktDe\PtMigrations\Domain\Model\MigrationState;
+namespace PunktDe\PtMigrations\Controller;
 
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2012 Michael Knoll <knoll@punkt.de>, punkt.de GmbH
+*  (c) 2015 Michael Lihs, Sebastian Helzle, punkt.de GmbH <extensions@punkt.de>
 *
 *
 *  All rights reserved
@@ -27,14 +27,62 @@ use PunktDe\PtMigrations\Domain\Model\MigrationState;
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
+use PunktDe\PtMigrations\Domain\Model\MigrationState;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
 /**
  * Class implements controller for migrations module
  *
  * @package Controller
  */
-class Tx_PtMigrations_Controller_MigrationsController extends Tx_PtExtbase_Controller_AbstractActionController {
+class MigrationsController extends ActionController {
 
+	/**
+	 * Path to the yaml configuration
+	 * TODO: make this configurable
+	 *
+	 * @var string
+	 */
+	protected $configurationPath = '../config/Configuration.yaml';
+
+	/**
+	 * @var array
+	 */
+	protected $configuration = array();
+
+	/**
+	 * Loads extension configuration from yaml file
+	 *
+	 * @return array
+	 */
+	protected function getConfiguration() {
+		if (empty($this->configuration)) {
+			try {
+				chdir(__DIR__ . '/../../bin/');
+
+				$doctrineMigrationsPhar = 'phar://doctrine-migrations.phar';
+				require_once $doctrineMigrationsPhar . '/Doctrine/Common/ClassLoader.php';
+
+				$classLoader = new \Doctrine\Common\ClassLoader('Symfony', $doctrineMigrationsPhar);
+				$classLoader->register();
+
+				$configurationFile = PATH_site . $this->configurationPath;
+				$parsedConfiguration = \Symfony\Component\Yaml\Yaml::parse($configurationFile);
+
+				if (array_key_exists('configuration', $parsedConfiguration) && array_key_exists('doctrine', $parsedConfiguration['configuration'])) {
+					$this->configuration = $parsedConfiguration['configuration']['doctrine'];
+				}
+			} catch (\Exception $e) {
+			}
+		}
+		return $this->configuration;
+	}
+
+	/**
+	 * Shows overview of existing migrations
+	 */
 	public function indexAction() {
 		$migrations = $this->getAllMigrations();
 
@@ -42,54 +90,64 @@ class Tx_PtMigrations_Controller_MigrationsController extends Tx_PtExtbase_Contr
 		$this->view->assign('migrations', $migrations);
 	}
 
-
-
 	/**
-	 * Run the pending migrations and refresh the view in the backend
+	 * Run the missing migrations and refresh the view in the backend
 	 */
 	public function runMigrationAction() {
 		$this->executedMissedMigrations();
 		$this->redirect('index');
 	}
 
-
-
 	/**
-	 * Load the migrations from the migrations folder in pt_campo
-	 *
+	 * Load the migrations from the migrations folders defined in the configuration
+	 * TODO: split migrations by their directories
+	 * TODO: read information what each migrations does
 	 * @return array<MigrationState>
 	 */
 	protected function getAllMigrations() {
-		$migrationsDirectory = __DIR__ . '/../../../pt_campo/Migrations/';
+		$configuration = $this->getConfiguration();
 		$migrations = array();
-		foreach(array_diff(scandir($migrationsDirectory), array('..', '.')) as $timestamp) {
-			$migrations[] = new MigrationState(substr($timestamp, 7, 10));
+
+		if (array_key_exists('migrations_directory', $configuration)) {
+			foreach ($configuration['migrations_directory'] as $migrationsDirectory) {
+				foreach (array_diff(scandir(PATH_site . $migrationsDirectory), array('..', '.')) as $timestamp) {
+					$migrations[] = new MigrationState(substr($timestamp, 7, 10));
+				}
+			}
 		}
 		return $migrations;
 	}
 
-
-
+	/**
+	 * @return void
+	 */
 	protected function executedMissedMigrations() {
 		//Load the current environment
-		$currentEnvironment = \TYPO3\CMS\Core\Utility\GeneralUtility::getApplicationContext();
+		$currentEnvironment = GeneralUtility::getApplicationContext();
 		$runMigrationCommand = "TYPO3_CONTEXT=$currentEnvironment ./migrate -n migrations:migrate 2>&1";
 		$output = array();
+
 		//Change the actual directory to the one where the command should be run
 		chdir(__DIR__ . '/../../bin/');
+
 		//Run the command in the console
 		$this->runShellCommand($runMigrationCommand, $output, $exitCode);
+
 		//This shows flash message with the console output when an error or a warning happens
 		if ($exitCode == 0) {
 			$messages = implode('<br>', $output);
 			$this->addFlashMessage("Messages from migration command: $messages", 'Migrations successfully run');
 		} else {
-			$this->addFlashMessage("Error ($exitCode): <br>" . implode('<br>', $output), 'An Error occurred!',\TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
+			$this->addFlashMessage("Error (" . $exitCode . "): <br>" . implode('<br>', $output), 'An Error occurred!', FlashMessage::ERROR);
 		}
 	}
 
-
-
+	/**
+	 * @param string $command
+	 * @param array $output
+	 * @param int $exitCode
+	 * @return void
+	 */
 	protected function runShellCommand($command, array &$output, &$exitCode) {
 		exec($command, $output, $exitCode);
 	}
