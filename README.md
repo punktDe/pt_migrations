@@ -17,6 +17,10 @@ Run `TYPO3_CONTEXT=current_context ./migrate migrations:cmd` in bin folder.
 F.e. `Development/Vagrant`.
 `cmd` can currently be `status`, `migrate` or `version`.
 
+## List all commands
+
+Run `TYPO3_CONTEXT=current_context ./migrate list` in bin folder.
+
 ## Show migration status
 
 Run `TYPO3_CONTEXT=current_context ./migrate migrations:status` in bin folder.
