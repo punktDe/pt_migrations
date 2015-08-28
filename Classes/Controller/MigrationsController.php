@@ -69,7 +69,7 @@ class MigrationsController extends ActionController {
 				$classLoader->register();
 
 				$configurationFile = PATH_site . $this->configurationPath;
-				$parsedConfiguration = \Symfony\Component\Yaml\Yaml::parse($configurationFile);
+				$parsedConfiguration = \Symfony\Component\Yaml\Yaml::parse(file_get_contents($configurationFile));
 
 				if (array_key_exists('configuration', $parsedConfiguration) && array_key_exists('doctrine', $parsedConfiguration['configuration'])) {
 					$this->configuration = $parsedConfiguration['configuration']['doctrine'];
