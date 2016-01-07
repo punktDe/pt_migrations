@@ -1,0 +1,35 @@
+{
+  "name": "punktde/pt_migrations",
+  "type": "typo3-cms-extension",
+  "description": "TYPO3 extension which supports running db migrations based on doctrine",
+  "keywords": [
+    "TYPO3",
+    "extension"
+  ],
+  "homepage": "http://punkt.de",
+  "license": [
+    "GPL-2.0+"
+  ],
+  "require": {
+    "typo3/cms-core": ">=6.2.0,<8.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.8.0"
+  },
+  "autoload": {
+    "classmap": [
+      "Classes/"
+    ]
+  },
+  "replace": {
+    "pt_migrations": "self.version",
+    "typo3-ter/pt_migrations": "self.version"
+  },
+  "extra": {
+    "typo3/cms": {
+      "cms-package-dir": "{$vendor-dir}/typo3/cms",
+      "web-dir": ".Build/Web"
+    }
+  }
+}
+
