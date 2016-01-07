@@ -23,6 +23,24 @@ use Doctrine\DBAL\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\DBAL\Migrations\Tools\Console\Command\StatusCommand;
 use Doctrine\DBAL\Migrations\Tools\Console\Command\VersionCommand;
 
+function getValueByPath(array &$array, $path)
+{
+	if (is_string($path)) {
+		$path = explode('.', $path);
+	} elseif (!is_array($path)) {
+		throw new \InvalidArgumentException('getValueByPath() expects $path to be string or array, "' . gettype($path) . '" given.', 1304950007);
+	}
+	$key = array_shift($path);
+	if (isset($array[$key])) {
+		if (!empty($path)) {
+			return is_array($array[$key]) ? self::getValueByPath($array[$key], $path) : null;
+		}
+		return $array[$key];
+	} else {
+		return null;
+	}
+}
+
 // Read the project specific yaml configuration
 // TODO: find a way to get the document root more easily
 // TODO: make the configuration path configurable for the user
@@ -52,7 +70,7 @@ if (! $contextString || ! (in_array($applicationContext[0], array('Production', 
 	exit;
 }
 
-$validatedSettings = $settings[$applicationContext[0]][$applicationContext[1]];
+$validatedSettings = getValueByPath($settings, $applicationContext);
 
 // Create db connection
 $config = new \Doctrine\DBAL\Configuration();
