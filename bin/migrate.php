@@ -33,7 +33,7 @@ function getValueByPath(array &$array, $path)
 	$key = array_shift($path);
 	if (isset($array[$key])) {
 		if (!empty($path)) {
-			return is_array($array[$key]) ? self::getValueByPath($array[$key], $path) : null;
+			return is_array($array[$key]) ? getValueByPath($array[$key], $path) : null;
 		}
 		return $array[$key];
 	} else {
@@ -71,6 +71,11 @@ if (! $contextString || ! (in_array($applicationContext[0], array('Production', 
 }
 
 $validatedSettings = getValueByPath($settings, $applicationContext);
+
+if ($validatedSettings === null) {
+	printf("\033[31mNot settings found for TYPO3_CONTEXT %s\033[0m" . PHP_EOL, $contextString);
+	exit;
+}
 
 // Create db connection
 $config = new \Doctrine\DBAL\Configuration();
