@@ -43,7 +43,7 @@ if (TYPO3_MODE === 'BE') {
 		),
 		array(
 			'access' => 'user,group',
-			'icon' => 'EXT:pt_migrations/ext_icon.gif',
+			'icon' => 'EXT:pt_migrations/ext_icon.svg',
 			'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang_mod_installation.xml',
 		)
 	);
