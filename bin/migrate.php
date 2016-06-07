@@ -11,11 +11,9 @@ $classLoader = new \Doctrine\Common\ClassLoader('Symfony', $doctrineMigrationsPh
 $classLoader->register();
 
 use Symfony\Component\Console\Helper\HelperSet;
-
 // TODO: DialogHelper is still used by Doctrine Migration (Migrate, Status and Version)
 // TODO: Depends on https://github.com/doctrine/migrations/pull/198
 use Symfony\Component\Console\Helper\DialogHelper;
-
 use Symfony\Component\Console\Application;
 use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
 use Doctrine\DBAL\Migrations\Configuration\YamlConfiguration;
@@ -25,20 +23,20 @@ use Doctrine\DBAL\Migrations\Tools\Console\Command\VersionCommand;
 
 function getValueByPath(array &$array, $path)
 {
-	if (is_string($path)) {
-		$path = explode('.', $path);
-	} elseif (!is_array($path)) {
-		throw new \InvalidArgumentException('getValueByPath() expects $path to be string or array, "' . gettype($path) . '" given.', 1304950007);
-	}
-	$key = array_shift($path);
-	if (isset($array[$key])) {
-		if (!empty($path)) {
-			return is_array($array[$key]) ? getValueByPath($array[$key], $path) : null;
-		}
-		return $array[$key];
-	} else {
-		return null;
-	}
+    if (is_string($path)) {
+        $path = explode('.', $path);
+    } elseif (!is_array($path)) {
+        throw new \InvalidArgumentException('getValueByPath() expects $path to be string or array, "' . gettype($path) . '" given.', 1304950007);
+    }
+    $key = array_shift($path);
+    if (isset($array[$key])) {
+        if (!empty($path)) {
+            return is_array($array[$key]) ? getValueByPath($array[$key], $path) : null;
+        }
+        return $array[$key];
+    } else {
+        return null;
+    }
 }
 
 // Read the project specific yaml configuration
@@ -55,43 +53,43 @@ $settings = $globalConf['configuration']['nodes'];
 $doctrineConf = $globalConf['configuration']['doctrine'];
 
 if (! $contextString || ! (in_array($applicationContext[0], array('Production', 'Development', 'Testing')))) {
-	printf(PHP_EOL . PHP_EOL . "\033[31mTYPO3_CONTEXT is empty or none of allowed contexts (Production, Development, Testing) \033[0m" . PHP_EOL);
+    printf(PHP_EOL . PHP_EOL . "\033[31mTYPO3_CONTEXT is empty or none of allowed contexts (Production, Development, Testing) \033[0m" . PHP_EOL);
 
-	$hint = '';
-	if (isset($settings) && is_array($settings)) {
-		foreach ($settings as $rootContextName => $subContexts) {
-			foreach ($subContexts as $subContextName => $context) {
-				$hint .= '- ' . $rootContextName . '/' . $subContextName . PHP_EOL;
-			}
-		}
-		$hint = "Following contexts are found from your configurations." . PHP_EOL . $hint;
-		printf($hint . PHP_EOL);
-	}
-	exit;
+    $hint = '';
+    if (isset($settings) && is_array($settings)) {
+        foreach ($settings as $rootContextName => $subContexts) {
+            foreach ($subContexts as $subContextName => $context) {
+                $hint .= '- ' . $rootContextName . '/' . $subContextName . PHP_EOL;
+            }
+        }
+        $hint = "Following contexts are found from your configurations." . PHP_EOL . $hint;
+        printf($hint . PHP_EOL);
+    }
+    exit;
 }
 
 $validatedSettings = getValueByPath($settings, $applicationContext);
 
 if ($validatedSettings === null) {
-	printf("\033[31mNot settings found for TYPO3_CONTEXT %s\033[0m" . PHP_EOL, $contextString);
-	exit;
+    printf("\033[31mNot settings found for TYPO3_CONTEXT %s\033[0m" . PHP_EOL, $contextString);
+    exit;
 }
 
 // Create db connection
 $config = new \Doctrine\DBAL\Configuration();
 $connectionParams = array(
-	'dbname' => $validatedSettings['db'],
-	'user' => $validatedSettings['user'],
-	'password' => $validatedSettings['password'],
-	'host' => $validatedSettings['host'],
-	'driver' => 'pdo_mysql'
+    'dbname' => $validatedSettings['db'],
+    'user' => $validatedSettings['user'],
+    'password' => $validatedSettings['password'],
+    'host' => $validatedSettings['host'],
+    'driver' => 'pdo_mysql'
 );
 $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
 
 // Create the cli application
 $helperSet = new HelperSet(array(
-	'db' => new ConnectionHelper($conn),
-	'dialog' => new DialogHelper(),
+    'db' => new ConnectionHelper($conn),
+    'dialog' => new DialogHelper(),
 ));
 
 $cli = new Application('Doctrine Command Line Interface', \Doctrine\DBAL\Migrations\MigrationsVersion::VERSION);
@@ -106,16 +104,16 @@ $migrationConf->setMigrationsTableName($doctrineConf['table_name']);
 
 // Loops and registers for all specified directories
 foreach ($doctrineConf['migrations_directory'] as $dir) {
-	$migrationsDirectory = $documentRoot . '/' . $dir;
-	$migrationConf->setMigrationsDirectory($migrationsDirectory);
-	$migrationConf->registerMigrationsFromDirectory($migrationsDirectory);
+    $migrationsDirectory = $documentRoot . '/' . $dir;
+    $migrationConf->setMigrationsDirectory($migrationsDirectory);
+    $migrationConf->registerMigrationsFromDirectory($migrationsDirectory);
 }
 
 // Possibility to register migration tasks via yaml
 if (isset($doctrineConf['migrations']) && is_array($doctrineConf['migrations'])) {
-	foreach ($doctrineConf['migrations'] as $migration) {
-		$migrationConf->registerMigration($migration['version'], $migration['class']);
-	}
+    foreach ($doctrineConf['migrations'] as $migration) {
+        $migrationConf->registerMigration($migration['version'], $migration['class']);
+    }
 }
 
 

@@ -37,119 +37,124 @@ use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
  *
  * @package Controller
  */
-class MigrationsController extends ActionController {
+class MigrationsController extends ActionController
+{
+    /**
+     * Path to the yaml configuration
+     * TODO: make this configurable
+     *
+     * @var string
+     */
+    protected $configurationPath = '../config/Configuration.yaml';
 
-	/**
-	 * Path to the yaml configuration
-	 * TODO: make this configurable
-	 *
-	 * @var string
-	 */
-	protected $configurationPath = '../config/Configuration.yaml';
+    /**
+     * @var array
+     */
+    protected $configuration = array();
 
-	/**
-	 * @var array
-	 */
-	protected $configuration = array();
+    /**
+     * Loads extension configuration from yaml file
+     *
+     * @return array
+     */
+    protected function getConfiguration()
+    {
+        if (empty($this->configuration)) {
+            try {
+                chdir(__DIR__ . '/../../bin/');
 
-	/**
-	 * Loads extension configuration from yaml file
-	 *
-	 * @return array
-	 */
-	protected function getConfiguration() {
-		if (empty($this->configuration)) {
-			try {
-				chdir(__DIR__ . '/../../bin/');
+                $doctrineMigrationsPhar = 'phar://doctrine-migrations.phar';
+                require_once $doctrineMigrationsPhar . '/Doctrine/Common/ClassLoader.php';
 
-				$doctrineMigrationsPhar = 'phar://doctrine-migrations.phar';
-				require_once $doctrineMigrationsPhar . '/Doctrine/Common/ClassLoader.php';
+                $classLoader = new \Doctrine\Common\ClassLoader('Symfony', $doctrineMigrationsPhar);
+                $classLoader->register();
 
-				$classLoader = new \Doctrine\Common\ClassLoader('Symfony', $doctrineMigrationsPhar);
-				$classLoader->register();
+                $configurationFile = PATH_site . $this->configurationPath;
+                $parsedConfiguration = \Symfony\Component\Yaml\Yaml::parse(file_get_contents($configurationFile));
 
-				$configurationFile = PATH_site . $this->configurationPath;
-				$parsedConfiguration = \Symfony\Component\Yaml\Yaml::parse(file_get_contents($configurationFile));
+                if (array_key_exists('configuration', $parsedConfiguration) && array_key_exists('doctrine', $parsedConfiguration['configuration'])) {
+                    $this->configuration = $parsedConfiguration['configuration']['doctrine'];
+                }
+            } catch (\Exception $e) {
+            }
+        }
+        return $this->configuration;
+    }
 
-				if (array_key_exists('configuration', $parsedConfiguration) && array_key_exists('doctrine', $parsedConfiguration['configuration'])) {
-					$this->configuration = $parsedConfiguration['configuration']['doctrine'];
-				}
-			} catch (\Exception $e) {
-			}
-		}
-		return $this->configuration;
-	}
+    /**
+     * Shows overview of existing migrations
+     */
+    public function indexAction()
+    {
+        $migrations = $this->getAllMigrations();
 
-	/**
-	 * Shows overview of existing migrations
-	 */
-	public function indexAction() {
-		$migrations = $this->getAllMigrations();
+        $this->view->assign('numberAvailableMigrations', count($migrations));
+        $this->view->assign('migrations', $migrations);
+    }
 
-		$this->view->assign('numberAvailableMigrations', count($migrations));
-		$this->view->assign('migrations', $migrations);
-	}
+    /**
+     * Run the missing migrations and refresh the view in the backend
+     */
+    public function runMigrationAction()
+    {
+        $this->executedMissedMigrations();
+        $this->redirect('index');
+    }
 
-	/**
-	 * Run the missing migrations and refresh the view in the backend
-	 */
-	public function runMigrationAction() {
-		$this->executedMissedMigrations();
-		$this->redirect('index');
-	}
+    /**
+     * Load the migrations from the migrations folders defined in the configuration
+     * TODO: split migrations by their directories
+     * TODO: read information what each migrations does
+     * @return array<MigrationState>
+     */
+    protected function getAllMigrations()
+    {
+        $configuration = $this->getConfiguration();
+        $migrations = array();
 
-	/**
-	 * Load the migrations from the migrations folders defined in the configuration
-	 * TODO: split migrations by their directories
-	 * TODO: read information what each migrations does
-	 * @return array<MigrationState>
-	 */
-	protected function getAllMigrations() {
-		$configuration = $this->getConfiguration();
-		$migrations = array();
+        if (array_key_exists('migrations_directory', $configuration)) {
+            foreach ($configuration['migrations_directory'] as $migrationsDirectory) {
+                foreach (array_diff(scandir(PATH_site . $migrationsDirectory), array('..', '.')) as $timestamp) {
+                    $migrations[] = new MigrationState(substr($timestamp, 7, 10));
+                }
+            }
+        }
+        return $migrations;
+    }
 
-		if (array_key_exists('migrations_directory', $configuration)) {
-			foreach ($configuration['migrations_directory'] as $migrationsDirectory) {
-				foreach (array_diff(scandir(PATH_site . $migrationsDirectory), array('..', '.')) as $timestamp) {
-					$migrations[] = new MigrationState(substr($timestamp, 7, 10));
-				}
-			}
-		}
-		return $migrations;
-	}
+    /**
+     * @return void
+     */
+    protected function executedMissedMigrations()
+    {
+        //Load the current environment
+        $currentEnvironment = GeneralUtility::getApplicationContext();
+        $runMigrationCommand = "TYPO3_CONTEXT=$currentEnvironment ./migrate -n migrations:migrate 2>&1";
+        $output = array();
 
-	/**
-	 * @return void
-	 */
-	protected function executedMissedMigrations() {
-		//Load the current environment
-		$currentEnvironment = GeneralUtility::getApplicationContext();
-		$runMigrationCommand = "TYPO3_CONTEXT=$currentEnvironment ./migrate -n migrations:migrate 2>&1";
-		$output = array();
+        //Change the actual directory to the one where the command should be run
+        chdir(__DIR__ . '/../../bin/');
 
-		//Change the actual directory to the one where the command should be run
-		chdir(__DIR__ . '/../../bin/');
+        //Run the command in the console
+        $this->runShellCommand($runMigrationCommand, $output, $exitCode);
 
-		//Run the command in the console
-		$this->runShellCommand($runMigrationCommand, $output, $exitCode);
+        //This shows flash message with the console output when an error or a warning happens
+        if ($exitCode == 0) {
+            $messages = implode('<br>', $output);
+            $this->addFlashMessage("Messages from migration command: $messages", 'Migrations successfully run');
+        } else {
+            $this->addFlashMessage("Error (" . $exitCode . "): <br>" . implode('<br>', $output), 'An Error occurred!', FlashMessage::ERROR);
+        }
+    }
 
-		//This shows flash message with the console output when an error or a warning happens
-		if ($exitCode == 0) {
-			$messages = implode('<br>', $output);
-			$this->addFlashMessage("Messages from migration command: $messages", 'Migrations successfully run');
-		} else {
-			$this->addFlashMessage("Error (" . $exitCode . "): <br>" . implode('<br>', $output), 'An Error occurred!', FlashMessage::ERROR);
-		}
-	}
-
-	/**
-	 * @param string $command
-	 * @param array $output
-	 * @param int $exitCode
-	 * @return void
-	 */
-	protected function runShellCommand($command, array &$output, &$exitCode) {
-		exec($command, $output, $exitCode);
-	}
-
+    /**
+     * @param string $command
+     * @param array $output
+     * @param int $exitCode
+     * @return void
+     */
+    protected function runShellCommand($command, array &$output, &$exitCode)
+    {
+        exec($command, $output, $exitCode);
+    }
 }

@@ -35,58 +35,60 @@ namespace PunktDe\PtMigrations\Domain\Model;
  * @license http://www.gnu.org/licenses/gpl.html GNU General Public License, version 3 or later
  *
  */
-class MigrationState {
-
-	/**
-	 * Timestamp
-	 *
-	 * @var integer
-	 */
-	protected $timestamp;
-
-
-	/**
-	 * @var \TYPO3\CMS\Core\Database\DatabaseConnection
-	 */
-	protected $dbObj;
+class MigrationState
+{
+    /**
+     * Timestamp
+     *
+     * @var integer
+     */
+    protected $timestamp;
 
 
-
-	/**
-	 * __construct
-	 *
-	 * @return void
-	 */
-	public function __construct($timestamp) {
-		$this->timestamp = $timestamp;
-		$this->dbObj = $GLOBALS['TYPO3_DB'];
-	}
+    /**
+     * @var \TYPO3\CMS\Core\Database\DatabaseConnection
+     */
+    protected $dbObj;
 
 
 
-	/**
-	 *
-	 *
-	 * @return string
-	 */
-	public function isMigrated() {
-		$migration = $this->dbObj->exec_SELECTgetSingleRow('version', 'pt_migrations', 'version="' . $this->timestamp . '"');
-		if (!empty($migration)) {
-			return TRUE;
-		} else {
-			return FALSE;
-		}
-	}
+    /**
+     * __construct
+     *
+     * @return void
+     */
+    public function __construct($timestamp)
+    {
+        $this->timestamp = $timestamp;
+        $this->dbObj = $GLOBALS['TYPO3_DB'];
+    }
 
 
 
-	/**
-	 * Returns the timestamp
-	 *
-	 * @return float $timestamp
-	 */
-	public function getTimestamp() {
-		return $this->timestamp;
-	}
+    /**
+     *
+     *
+     * @return string
+     */
+    public function isMigrated()
+    {
+        $migration = $this->dbObj->exec_SELECTgetSingleRow('version', 'pt_migrations', 'version="' . $this->timestamp . '"');
+        if (!empty($migration)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+
+
+    /**
+     * Returns the timestamp
+     *
+     * @return float $timestamp
+     */
+    public function getTimestamp()
+    {
+        return $this->timestamp;
+    }
 }

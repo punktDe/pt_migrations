@@ -25,28 +25,28 @@
  ***************************************************************/
 
 
-if (!defined ('TYPO3_MODE')) die ('Access denied.');
+if (!defined('TYPO3_MODE')) {
+    die('Access denied.');
+}
 
 /**
  *  Register the Backend Modules for this Extension
  */
 
 if (TYPO3_MODE === 'BE') {
-	// Register the Pt Migrations tool
-	\TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-		'PunktDe.' . $_EXTKEY,
-		'tools', // Make module a submodule of 'tools'
-		'migrations', // Submodule key
-		'', // Position
-		array( // An array holding the controller-action-combinations that are accessible
-			'Migrations' => 'index,runMigration'
-		),
-		array(
-			'access' => 'user,group',
-			'icon' => 'EXT:pt_migrations/ext_icon.svg',
-			'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang_mod_installation.xml',
-		)
-	);
-
+    // Register the Pt Migrations tool
+    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
+        'PunktDe.' . $_EXTKEY,
+        'tools', // Make module a submodule of 'tools'
+        'migrations', // Submodule key
+        '', // Position
+        array( // An array holding the controller-action-combinations that are accessible
+            'Migrations' => 'index,runMigration'
+        ),
+        array(
+            'access' => 'user,group',
+            'icon' => 'EXT:pt_migrations/ext_icon.svg',
+            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang_mod_installation.xml',
+        )
+    );
 }
-
