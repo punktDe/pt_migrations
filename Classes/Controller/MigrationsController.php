@@ -61,9 +61,7 @@ class MigrationsController extends ActionController
     {
         if (empty($this->configuration)) {
             try {
-                chdir(__DIR__ . '/../../bin/');
-
-                $doctrineMigrationsPhar = 'phar://doctrine-migrations.phar';
+                $doctrineMigrationsPhar = 'phar://' . realpath(__DIR__ . '/../../bin/doctrine-migrations.phar');
                 require_once $doctrineMigrationsPhar . '/Doctrine/Common/ClassLoader.php';
 
                 $classLoader = new \Doctrine\Common\ClassLoader('Symfony', $doctrineMigrationsPhar);
