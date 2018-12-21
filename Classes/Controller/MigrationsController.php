@@ -29,6 +29,7 @@ namespace PunktDe\PtMigrations\Controller;
 
 use PunktDe\PtMigrations\Domain\Model\MigrationState;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
@@ -61,7 +62,7 @@ class MigrationsController extends ActionController
     {
         if (empty($this->configuration)) {
             try {
-                $doctrineMigrationsPhar = 'phar://' . realpath(__DIR__ . '/../../bin/doctrine-migrations.phar');
+                $doctrineMigrationsPhar = 'phar://' . ExtensionManagementUtility::extPath('pt_migrations') . '/bin/doctrine-migrations.phar';
                 require_once $doctrineMigrationsPhar . '/Doctrine/Common/ClassLoader.php';
 
                 $classLoader = new \Doctrine\Common\ClassLoader('Symfony', $doctrineMigrationsPhar);
